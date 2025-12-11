@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Dashboard - Live Cryptocurrency Prices</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💎 Crypto Dashboard</h1>
+            <p class="subtitle">Real-time cryptocurrency market data</p>
+        </header>
+
+        <div class="controls">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search cryptocurrencies..." class="search-input">
+            </div>
+            <div class="refresh-container">
+                <button id="refreshBtn" class="refresh-btn">🔄 Refresh</button>
+                <span id="lastUpdate" class="last-update"></span>
+            </div>
+        </div>
+
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-label">Total Market Cap</div>
+                <div id="totalMarketCap" class="stat-value">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">24h Volume</div>
+                <div id="totalVolume" class="stat-value">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">BTC Dominance</div>
+                <div id="btcDominance" class="stat-value">Loading...</div>
+            </div>
+        </div>
+
+        <div id="loadingSpinner" class="loading">
+            <div class="spinner"></div>
+            <p>Loading cryptocurrency data...</p>
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+        <div class="crypto-grid" id="cryptoGrid"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
