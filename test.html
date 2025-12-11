@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Crypto Dashboard - API Test</h1>
+
+        <div id="status" class="status info">
+            ⏳ Click the button below to test the API connection...
+        </div>
+
+        <button onclick="testAPI()">Test API Connection</button>
+
+        <h2>Test Results:</h2>
+        <div id="results"></div>
+
+        <h2>How you're accessing this page:</h2>
+        <div id="pageInfo"></div>
+    </div>
+
+    <script>
+        // Display page access method
+        const pageInfo = document.getElementById('pageInfo');
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const path = window.location.pathname;
+
+        pageInfo.innerHTML = `
+            <pre>Protocol: ${protocol}
+Host: ${host || 'N/A (file system)'}
+Path: ${path}</pre>
+        `;
+
+        if (protocol === 'file:') {
+            pageInfo.innerHTML += `
+                <div class="status error">
+                    ⚠️ WARNING: You're opening this file directly (file:// protocol).
+                    This will cause CORS errors when fetching from the API.
+                    <br><br>
+                    <strong>Please use a local web server instead!</strong>
+                    <br><br>
+                    Run one of these commands in your terminal:
+                    <pre>python3 -m http.server 8000
+# Then open: http://localhost:8000/test.html</pre>
+                </div>
+            `;
+        } else if (protocol === 'http:' || protocol === 'https:') {
+            pageInfo.innerHTML += `
+                <div class="status success">
+                    ✓ Good! You're using a web server (${protocol})
+                </div>
+            `;
+        }
+
+        async function testAPI() {
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+
+            statusDiv.innerHTML = '⏳ Testing API connection...';
+            statusDiv.className = 'status info';
+            resultsDiv.innerHTML = '';
+
+            try {
+                // Test 1: Ping API
+                statusDiv.innerHTML = '⏳ Step 1/3: Pinging CoinGecko API...';
+                const pingResponse = await fetch('https://api.coingecko.com/api/v3/ping');
+                const pingData = await pingResponse.json();
+
+                resultsDiv.innerHTML += `
+                    <div class="status success">
+                        ✓ Step 1 PASSED: API is reachable
+                        <pre>${JSON.stringify(pingData, null, 2)}</pre>
+                    </div>
+                `;
+
+                // Test 2: Fetch global data
+                statusDiv.innerHTML = '⏳ Step 2/3: Fetching global market data...';
+                const globalResponse = await fetch('https://api.coingecko.com/api/v3/global');
+                const globalData = await globalResponse.json();
+
+                resultsDiv.innerHTML += `
+                    <div class="status success">
+                        ✓ Step 2 PASSED: Global data received
+                        <pre>Market Cap: $${(globalData.data.total_market_cap.usd / 1e12).toFixed(2)}T
+24h Volume: $${(globalData.data.total_volume.usd / 1e9).toFixed(2)}B
+BTC Dominance: ${globalData.data.market_cap_percentage.btc.toFixed(2)}%</pre>
+                    </div>
+                `;
+
+                // Test 3: Fetch coin data
+                statusDiv.innerHTML = '⏳ Step 3/3: Fetching cryptocurrency prices...';
+                const coinsResponse = await fetch(
+                    'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=5&page=1'
+                );
+                const coinsData = await coinsResponse.json();
+
+                let coinsList = '<ul>';
+                coinsData.forEach(coin => {
+                    coinsList += `<li><strong>${coin.name}</strong> (${coin.symbol.toUpperCase()}): $${coin.current_price.toLocaleString()}</li>`;
+                });
+                coinsList += '</ul>';
+
+                resultsDiv.innerHTML += `
+                    <div class="status success">
+                        ✓ Step 3 PASSED: Cryptocurrency data received
+                        <p>Top 5 Cryptocurrencies:</p>
+                        ${coinsList}
+                    </div>
+                `;
+
+                statusDiv.innerHTML = '✅ ALL TESTS PASSED! Your setup is working correctly.';
+                statusDiv.className = 'status success';
+
+                resultsDiv.innerHTML += `
+                    <div class="status success">
+                        <strong>🎉 Success! The API is working perfectly.</strong>
+                        <br><br>
+                        Your main dashboard (index.html) should work fine.
+                        Make sure you're accessing it the same way you accessed this test page.
+                    </div>
+                `;
+
+            } catch (error) {
+                statusDiv.innerHTML = '❌ TEST FAILED';
+                statusDiv.className = 'status error';
+
+                resultsDiv.innerHTML += `
+                    <div class="status error">
+                        <strong>Error Details:</strong>
+                        <pre>${error.message}</pre>
+
+                        <strong>Common Solutions:</strong>
+                        <ul>
+                            <li>Make sure you're using a local web server (not opening file:// directly)</li>
+                            <li>Check your internet connection</li>
+                            <li>Try disabling browser extensions that might block requests</li>
+                            <li>Check if a firewall is blocking the API</li>
+                        </ul>
+
+                        <strong>If you see a CORS error:</strong>
+                        <p>You MUST use a local web server. Run this command:</p>
+                        <pre>python3 -m http.server 8000</pre>
+                        <p>Then open: <code>http://localhost:8000/test.html</code></p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
